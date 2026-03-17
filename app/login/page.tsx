@@ -1,48 +1,41 @@
 "use client";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: "", password: "" });
+    const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify(form),
-      headers: { "Content-Type": "application/json" },
-    });
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get("email");
+        const password = formData.get("password");
 
-    const data = await res.json();
+        const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
 
-    if (res.ok) {
-      alert(`¡Bienvenida de nuevo!`);
-    } else {
-      alert(data.message || "Credenciales incorrectas");
-    }
-  };
+        const data = await res.json();
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "50px" }}>
-      <h1>Iniciar Sesión</h1>
-      <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "15px", width: "300px" }}>
-        <input 
-          type="email" 
-          placeholder="Correo Electrónico" 
-          style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
-          onChange={(e) => setForm({...form, email: e.target.value})} 
-          required
-        />
-        <input 
-          type="password" 
-          placeholder="Contraseña" 
-          style={{ padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
-          onChange={(e) => setForm({...form, password: e.target.value})} 
-          required
-        />
-        <button type="submit" style={{ backgroundColor: "#28a745", color: "white", padding: "12px", borderRadius: "5px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
-          ENTRAR
-        </button>
-      </form>
-    </div>
-  );
+        if (res.ok) {
+            alert("¡Bienvenido!");
+            router.push("/solicitudes");
+        } else {
+            alert(data.error || "Datos incorrectos");
+        }
+    };
+
+    return (
+        <main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-black">
+            <h1 className="text-3xl font-bold mb-6">Iniciar Sesión</h1>
+            <form onSubmit={handleLogin} className="flex flex-col gap-4 bg-white p-8 rounded shadow-md">
+                <input name="email" type="email" placeholder="Correo" className="border p-2 rounded" required />
+                <input name="password" type="password" placeholder="Contraseña" className="border p-2 rounded" required />
+                <button type="submit" className="bg-green-600 text-white p-2 rounded hover:bg-green-700">
+                    ENTRAR
+                </button>
+            </form>
+        </main>
+    );
 }
