@@ -1,19 +1,29 @@
-# 1. Imagen base: El runtime de Node.js [cite: 1106, 1184]
-FROM node:20-alpine
-
-# 2. Directorio de trabajo: Aislamiento dentro del contenedor [cite: 1119]
+# --- Etapa 1: Dependencias ---
+FROM node:20-alpine AS deps
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# 3. Instalación de dependencias: Usamos capas para eficiencia [cite: 1068, 1157]
-COPY package*.json ./
-RUN npm install
-
-# 4. Copiar el código fuente: Portabilidad total [cite: 1142]
+# --- Etapa 2: Construcción (Build) ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# 5. Puerto y ejecución: Modo desarrollo para tu proyecto actual [cite: 1156]
-EXPOSE 3000
-# Permite que Turbopack acepte conexiones desde tu localhost
+# Configuración para optimizar construcción en entornos Cloud
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV WATCHPACK_POLLING true
-CMD ["npm", "run", "dev"]
+RUN npm run build
+
+# --- Etapa 3: Producción ---
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Solo copiamos los artefactos compilados para tener una imagen final muy ligera
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
