@@ -18,6 +18,7 @@ Como parte del desarrollo hacia un perfil DevOps/Cloud, este proyecto incorpora:
 - Interfaz moderna e intuitiva con navegación eficiente.
 - Pantallas funcionales de Login, Registro y Dashboard de Solicitudes.
 - Arquitectura de tres capas (Frontend, Lógica, Backend simulado).
+- **Lógica de Negocio:** Flujo completo de ciclo de vida de un ticket (`Abierto` -> `En Progreso` -> `Cerrado`).
 
 ## 🐳 Despliegue con Docker (Cloud / Producción)
 
